@@ -1,0 +1,91 @@
+scalar Time
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Query {
+  me: User
+}
+
+type Mutation {
+  signup(email: String!, password: String!, name: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  price: Float!
+  stock: Int!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+extend type Query {
+  getProducts(page: Int, limit: Int): [Product!]!
+}
+
+extend type Mutation {
+  createProduct(name: String!, price: Float!, stock: Int!): Product!
+  updateProduct(id: ID!, name: String, price: Float, stock: Int): Product!
+  deleteProduct(id: ID!): Boolean!
+}
+
+type CartItem {
+  product: Product!
+  quantity: Int!
+}
+
+type Cart {
+  items: [CartItem!]!
+  total: Float!
+}
+
+extend type Query {
+  myCart: Cart!
+}
+
+extend type Mutation {
+  addToCart(productId: ID!, quantity: Int!): Cart!
+  updateCart(productId: ID!, quantity: Int!): Cart!
+  removeFromCart(productId: ID!): Cart!
+}
+
+type OrderItem {
+  productId: ID!
+  quantity: Int!
+  priceAtPurchase: Float!
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+type Order {
+  id: ID!
+  total: Float!
+  status: OrderStatus!
+  placedAt: Time!
+  items: [OrderItem!]!
+  idempotencyKey: String
+}
+
+extend type Mutation {
+  checkout(idempotencyKey: String): Order!
+}
+
+extend type Query {
+  getOrderHistory: [Order!]!
+}
+

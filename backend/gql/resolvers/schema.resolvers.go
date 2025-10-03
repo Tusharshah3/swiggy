@@ -1,0 +1,103 @@
+package resolvers
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"swiggy-clone/backend/gql"
+	"swiggy-clone/backend/models"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+)
+
+func (r *mutationResolver) Signup(ctx context.Context, email string, password string, name string) (*gql.AuthPayload, error) {
+	// Check if user already exists
+	var existing models.User
+	if err := r.DB.Where("email = ?", email).First(&existing).Error; err == nil {
+		return nil, fmt.Errorf("user already exists")
+	}
+
+	// Hash password
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %v", err)
+	}
+
+	// Create user
+	user := models.User{
+		Email:    email,
+		Name:     name,
+		Password: string(hashed),
+	}
+	if err := r.DB.Create(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to create user: %v", err)
+	}
+
+	// Generate JWT (✅ clean RegisteredClaims only)
+	claims := jwt.RegisteredClaims{
+		Subject:   fmt.Sprint(user.ID), // ensure string
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign token: %v", err)
+	}
+
+	// Return token and user info
+	return &gql.AuthPayload{
+		Token: signedToken,
+		User: &gql.User{
+			ID:    fmt.Sprint(user.ID),
+			Email: user.Email,
+			Name:  user.Name,
+		},
+	}, nil
+}
+
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*gql.AuthPayload, error) {
+	var user models.User
+	if err := r.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	// Compare password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	// Generate JWT (✅ clean RegisteredClaims only)
+	claims := jwt.RegisteredClaims{
+		Subject:   fmt.Sprint(user.ID), // ensure string
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign token: %v", err)
+	}
+
+	// Return token and user info
+	return &gql.AuthPayload{
+		Token: signedToken,
+		User: &gql.User{
+			ID:    fmt.Sprint(user.ID),
+			Email: user.Email,
+			Name:  user.Name,
+		},
+	}, nil
+}
+
+// Mutation returns gql.MutationResolver implementation.
+func (r *Resolver) Mutation() gql.MutationResolver { return &mutationResolver{r} }
+
+// Query returns gql.QueryResolver implementation.
+func (r *Resolver) Query() gql.QueryResolver { return &queryResolver{r} }
+
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
