@@ -50,6 +50,7 @@ type Product struct {
 	Stock     int       `json:"stock"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	Image     *string   `json:"image,omitempty"`
 }
 
 type Query struct {

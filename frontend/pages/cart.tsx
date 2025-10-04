@@ -47,60 +47,63 @@ export default function CartPage() {
       <Navbar />
       <h2 className="text-2xl font-bold mb-4">My Cart</h2>
 
-      {cart?.items.length === 0 && (
-        <div>Your cart is empty.</div>
-      )}
-
       {cart?.items.map((item: any) => (
         <div
           key={item.product.id}
-          className="border p-4 rounded flex justify-between items-center"
+          className="border rounded-lg p-4 flex gap-4 items-center shadow"
         >
-          <div>
-            <div className="font-semibold">{item.product.name}</div>
-            <div>
+          {/* ✅ Product Image */}
+          <img
+            src={item.product.image || "https://source.unsplash.com/featured/?food"}
+            alt={item.product.name}
+            className="w-24 h-24 object-cover rounded"
+          />
+
+          {/* ✅ Product Info and Actions */}
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">{item.product.name}</h3>
+            <p className="text-gray-600 text-sm mb-2">
               ₹ {item.product.price.toFixed(2)} × {item.quantity}
+            </p>
+
+            {/* ✅ Quantity Controls */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleUpdate(item.product.id, item.quantity + 1)}
+                className="px-3 py-1 bg-green-500 text-white rounded"
+              >
+                +
+              </button>
+
+              <span className="font-semibold">{item.quantity}</span>
+
+              <button
+                onClick={() =>
+                  item.quantity > 1
+                    ? handleUpdate(item.product.id, item.quantity - 1)
+                    : handleRemove(item.product.id)
+                }
+                className="px-3 py-1 bg-red-500 text-white rounded"
+              >
+                –
+              </button>
             </div>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleUpdate(item.product.id, item.quantity + 1)}
-              className="bg-green-600 text-white px-2 py-1 rounded"
-            >
-              +
-            </button>
-            <button
-              onClick={() =>
-                item.quantity > 1
-                  ? handleUpdate(item.product.id, item.quantity - 1)
-                  : handleRemove(item.product.id)
-              }
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              -
-            </button>
           </div>
         </div>
       ))}
 
-      <div className="text-right font-bold mt-4">
-        Total: ₹ {cart.total.toFixed(2)}
-      </div>
+          {/* ✅ Cart Footer */}
+        <div className="mt-6 p-4 border-t text-right space-y-2">
+          <div className="font-bold text-lg">Total: ₹ {cart.total.toFixed(2)}</div>
 
-      <div className="text-right font-bold mt-4">
-  Total: ₹ {cart.total.toFixed(2)}
-  </div>
+          <button
+            onClick={() => router.push("/checkout")}
+            className="bg-purple-600 text-white px-6 py-2 rounded shadow hover:bg-purple-700"
+          >
+            Proceed to Checkout
+          </button>
+        </div>
 
-  {cart?.items.length > 0 && (
-    <div className="text-right mt-4">
-      <button
-        onClick={() => router.push("/checkout")}
-        className="bg-purple-600 text-white px-4 py-2 rounded"
-      >
-        Proceed to Checkout
-      </button>
-    </div>
-  )}
 
     </div>
   );

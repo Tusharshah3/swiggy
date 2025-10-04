@@ -13,8 +13,14 @@ import (
 )
 
 // CREATE
-func (r *mutationResolver) CreateProduct(ctx context.Context, name string, price float64, stock int) (*gql.Product, error) {
-	p := models.Product{Name: name, Price: price, Stock: stock}
+func (r *mutationResolver) CreateProduct(ctx context.Context, name string, price float64, stock int, image *string) (*gql.Product, error) {
+	p := models.Product{
+		Name:  name,
+		Price: price,
+		Stock: stock,
+		Image: image, // ✅ directly assign pointer
+	}
+
 	if err := r.DB.Create(&p).Error; err != nil {
 		return nil, err
 	}
@@ -24,7 +30,7 @@ func (r *mutationResolver) CreateProduct(ctx context.Context, name string, price
 }
 
 // UPDATE
-func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, name *string, price *float64, stock *int) (*gql.Product, error) {
+func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, name *string, price *float64, stock *int, image *string) (*gql.Product, error) {
 	var p models.Product
 	if err := r.DB.First(&p, id).Error; err != nil {
 		return nil, err
@@ -38,6 +44,10 @@ func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, name *s
 	if stock != nil {
 		p.Stock = *stock
 	}
+	if image != nil {
+		p.Image = image
+	}
+
 	if err := r.DB.Save(&p).Error; err != nil {
 		return nil, err
 	}
@@ -97,6 +107,7 @@ func mapProductToGQL(p *models.Product) *gql.Product {
 		Name:      p.Name,
 		Price:     p.Price,
 		Stock:     p.Stock,
+		Image:     p.Image,
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 	}

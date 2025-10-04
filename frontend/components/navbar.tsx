@@ -6,6 +6,7 @@ export default function Navbar() {
       <div className="text-xl flex justify-end font-bold text-purple-700">MiniSwiggy 🍽️</div>
       <div className="space-x-4 text-sm">
         <Link href="/">Home</Link>
+        
         <Link href="/cart">Cart</Link>
         <Link href="/orders">Orders</Link>
       </div>

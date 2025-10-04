@@ -5,29 +5,45 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useMutation } from '@apollo/client/react'
 import { LOGIN_MUTATION } from '@/graphql/auth'
-import { Utensils, Mail, Lock, ArrowRight, Loader as Loader2 } from 'lucide-react'
+import {
+  Utensils,
+  Mail,
+  Lock,
+  ArrowRight,
+  Loader as Loader2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [login, { loading, error }] = useMutation(LOGIN_MUTATION)
+  const [localError, setLocalError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLocalError('')
+
+    if (form.password.length < 6) {
+      setLocalError('Password must be at least 6 characters')
+      return
+    }
 
     try {
       const { data } = await login({ variables: form })
-      //@ts-ignore
+        //@ts-ignore
       if (data?.login?.token) {
         //@ts-ignore
         localStorage.setItem('token', data.login.token)
-        router.push('/products')
+        router.push('/admin/page') // ✅ redirect to admin dashboard
+      } else {
+        setLocalError('Invalid credentials')
       }
     } catch (err) {
       console.error('Login error:', err)
+      setLocalError('Something went wrong. Please try again.')
     }
   }
 
@@ -41,18 +57,17 @@ export default function LoginPage() {
               <span className="text-2xl font-bold text-gray-900">FoodExpress</span>
             </Link>
             <div className="flex items-center justify-between h-16">
+            <Link href="/login">
+              <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+                User Login
+              </Button>
+            </Link>
             <Link href="/signup">
               <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
-                Sign Up
-              </Button>
-            </Link>     
-            <Link href="/adminlogin" >
-              <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
-                Login as Admin
+                User Signup
               </Button>
             </Link>
             </div>
-
           </div>
         </div>
       </nav>
@@ -61,8 +76,8 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-              <p className="text-gray-600">Sign in to continue ordering delicious food</p>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Login</h1>
+              <p className="text-gray-600 text-sm">Enter your admin credentials to continue</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -73,7 +88,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="admin@email.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="pl-10 h-12"
@@ -89,7 +104,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Minimum 6 characters"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="pl-10 h-12"
@@ -98,9 +113,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {error && (
+              {(localError || error) && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error.message}
+                  {localError || error?.message}
                 </div>
               )}
 
@@ -112,35 +127,20 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Signing in...
+                    Logging in...
                   </>
                 ) : (
                   <>
-                    Sign In
+                    Login as Admin
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
               </Button>
             </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">New to FoodExpress?</span>
-              </div>
-            </div>
-
-            <Link href="/signup">
-              <Button variant="outline" className="w-full h-12 text-lg border-2">
-                Create an Account
-              </Button>
-            </Link>
           </div>
 
           <p className="text-center text-sm text-gray-600 mt-6">
-            By continuing, you agree to our Terms of Service and Privacy Policy
+            Admin access only. Unauthorized use prohibited.
           </p>
         </div>
       </div>

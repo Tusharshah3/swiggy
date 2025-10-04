@@ -8,6 +8,7 @@ export const MY_CART = gql`
           id
           name
           price
+          image
         }
         quantity
       }
@@ -24,6 +25,7 @@ export const UPDATE_CART = gql`
           id
           name
           price
+
         }
         quantity
       }
