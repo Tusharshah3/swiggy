@@ -11,12 +11,13 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors" // ✅ ADD THIS LINE
 
 	"swiggy-clone/backend/config"
 	"swiggy-clone/backend/db"
 	"swiggy-clone/backend/gql"
 	"swiggy-clone/backend/gql/resolvers"
-	"swiggy-clone/backend/kafka" // ✅ import your in-memory queue
+	"swiggy-clone/backend/kafka"
 	custommiddleware "swiggy-clone/backend/middleware"
 	"swiggy-clone/backend/models"
 	"swiggy-clone/backend/redis"
@@ -65,9 +66,19 @@ func main() {
 	)
 
 	r := chi.NewRouter()
+
+	// ✅ Step 4: ADD CORS middleware BEFORE JWT
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // frontend dev URL
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
 	r.Use(middleware.Logger)
 
-	// JWT-protected GraphQL route
+	// ✅ JWT-protected GraphQL endpoint
 	r.Handle("/query", custommiddleware.JWT(srv))
 
 	// GraphQL Playground

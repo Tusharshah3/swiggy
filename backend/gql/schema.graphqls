@@ -27,6 +27,7 @@ type Product {
   stock: Int!
   createdAt: Time!
   updatedAt: Time!
+  image: String!
 }
 
 extend type Query {
@@ -88,4 +89,3 @@ extend type Mutation {
 extend type Query {
   getOrderHistory: [Order!]!
 }
-

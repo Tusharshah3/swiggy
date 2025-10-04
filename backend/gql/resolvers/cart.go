@@ -14,6 +14,8 @@ import (
 func (r *mutationResolver) AddToCart(ctx context.Context, productId string, quantity int) (*gql.Cart, error) {
 	// ✅ Extract user ID from context
 	uid, ok := middleware.UserIDFromCtx(ctx)
+	fmt.Println("[AddToCart] Entered resolver. Context:", ctx)
+
 	if !ok {
 		return nil, fmt.Errorf("unauthorized: no user ID in context (addToCart)")
 	}
