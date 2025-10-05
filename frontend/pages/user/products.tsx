@@ -101,7 +101,7 @@ export default function ProductsPage() {
               </Link>
 
               <div className="flex items-center space-x-2 hover:text-orange-600">
-                <Link href="profile">
+                <Link href="/user/profile">
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <User className="h-5 w-5" />
                   <span className="hidden sm:inline">You</span>

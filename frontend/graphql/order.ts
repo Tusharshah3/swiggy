@@ -30,3 +30,19 @@ export const GET_ORDER_HISTORY = gql`
     }
   }
 `;
+export const GET_ALL_ORDERS = gql`
+  query GetOrderHistory {
+    getOrderHistory {
+      id
+      total
+      status
+      placedAt
+      idempotencyKey
+      items {
+        productId
+        quantity
+        priceAtPurchase
+      }
+    }
+  }
+`

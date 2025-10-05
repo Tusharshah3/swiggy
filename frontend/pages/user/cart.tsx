@@ -3,9 +3,9 @@ import {
   MY_CART,
   UPDATE_CART,
   REMOVE_FROM_CART,
-} from "../graphql/cart";
+} from "../../graphql/cart";
 import { useRouter } from "next/router";
-import Navbar from "../components/navbar";
+
 
 export default function CartPage() {  
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function CartPage() {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 space-y-4">
-      <Navbar />
+      
       <h2 className="text-2xl font-bold mb-4">My Cart</h2>
 
       {cart?.items.map((item: any) => (

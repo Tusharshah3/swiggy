@@ -13,6 +13,7 @@ import (
 type AuthPayload struct {
 	Token string `json:"token"`
 	User  *User  `json:"user"`
+	Role  string `json:"role"`
 }
 
 type Cart struct {
@@ -56,10 +57,20 @@ type Product struct {
 type Query struct {
 }
 
+type SignupInput struct {
+	Email    string  `json:"email"`
+	Password string  `json:"password"`
+	Name     string  `json:"name"`
+	Role     string  `json:"role"`
+	Picture  *string `json:"picture,omitempty"`
+}
+
 type User struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	ID      string  `json:"id"`
+	Email   string  `json:"email"`
+	Name    string  `json:"name"`
+	Role    string  `json:"role"`
+	Picture *string `json:"picture,omitempty"`
 }
 
 type OrderStatus string

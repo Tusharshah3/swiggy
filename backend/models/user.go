@@ -9,10 +9,13 @@ import (
 type User struct {
 	ID        uint   `gorm:"primaryKey"`
 	Email     string `gorm:"uniqueIndex"`
-	Password  string // stored as a bcrypt hash
+	Password  string // bcrypt hashed
 	Name      string
+	Role      string `gorm:"type:varchar(10);default:'user'"`
+	Picture   *string
 	CreatedAt time.Time
 }
+
 type Claims struct {
 	UserID uint   `json:"sub"`
 	Email  string `json:"email"`

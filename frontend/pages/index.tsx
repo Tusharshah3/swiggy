@@ -15,12 +15,18 @@ export default function LandingPage() {
               <span className="text-2xl font-bold text-gray-900">FoodExpress</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/login">
+              <Link href="/admin/login">
+                <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+                  Admin Login
+                </Button>
+              </Link>
+              <Link href="/user/login">
                 <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
                   Login
                 </Button>
               </Link>
-              <Link href="/signup">
+              
+              <Link href="/user/signup">
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white">
                   Sign Up
                 </Button>
@@ -50,13 +56,13 @@ export default function LandingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Link href="/signup">
+                  <Link href="/user/signup">
                     <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg h-14 px-8 w-full sm:w-auto">
                       Get Started
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
-                  <Link href="/adminlogin">
+                  <Link href="/admin/login">
                     <Button size="lg" variant="outline" className="text-lg h-14 px-8 border-2 w-full sm:w-auto">
                       Admin Portal
                     </Button>

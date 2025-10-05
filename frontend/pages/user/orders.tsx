@@ -1,6 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { GET_ORDER_HISTORY } from "../graphql/order";
-import Navbar from "../components/navbar";
+import { GET_ORDER_HISTORY } from "../../graphql/order";
 export default function OrdersPage() {
   const { data, loading, error } = useQuery(GET_ORDER_HISTORY);
 
@@ -11,7 +10,6 @@ export default function OrdersPage() {
 
   return (
     <div className="max-w-3xl mx-auto mt-10 space-y-6">
-      <Navbar />
       <h2 className="text-2xl font-bold mb-4">Your Orders</h2>
       {orders.length === 0 && <div>No orders found.</div>}
       {orders.map((order: any) => (

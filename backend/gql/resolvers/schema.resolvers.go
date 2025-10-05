@@ -17,7 +17,12 @@ import (
 )
 
 // Signup is the resolver for the signup field.
-func (r *mutationResolver) Signup(ctx context.Context, email string, password string, name string) (*gql.AuthPayload, error) {
+func (r *mutationResolver) Signup(ctx context.Context, input gql.SignupInput) (*gql.AuthPayload, error) {
+	email := input.Email
+	password := input.Password
+	name := input.Name
+	role := input.Role
+	picture := input.Picture
 	// Check if user already exists
 	var existing models.User
 	if err := r.DB.Where("email = ?", email).First(&existing).Error; err == nil {
@@ -35,6 +40,10 @@ func (r *mutationResolver) Signup(ctx context.Context, email string, password st
 		Email:    email,
 		Name:     name,
 		Password: string(hashed),
+		Role:     role,
+	}
+	if picture != nil {
+		user.Picture = picture
 	}
 	if err := r.DB.Create(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to create user: %v", err)
@@ -59,6 +68,7 @@ func (r *mutationResolver) Signup(ctx context.Context, email string, password st
 			ID:    fmt.Sprint(user.ID),
 			Email: user.Email,
 			Name:  user.Name,
+			Role:  user.Role,
 		},
 	}, nil
 }
@@ -94,6 +104,7 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 			ID:    fmt.Sprint(user.ID),
 			Email: user.Email,
 			Name:  user.Name,
+			Role:  user.Role,
 		},
 	}, nil
 }

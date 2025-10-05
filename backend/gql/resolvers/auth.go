@@ -19,7 +19,7 @@ func (r *Resolver) Signup(ctx context.Context, email, password, name string) (*g
 	}
 	return &gql.AuthPayload{
 		Token: tok,
-		User:  &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name},
+		User:  &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name, Role: u.Role, Picture: u.Picture},
 	}, nil
 }
 
@@ -32,7 +32,7 @@ func (r *Resolver) Login(ctx context.Context, email, password string) (*gql.Auth
 	}
 	return &gql.AuthPayload{
 		Token: tok,
-		User:  &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name},
+		User:  &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name, Role: u.Role, Picture: u.Picture},
 	}, nil
 }
 
@@ -46,5 +46,5 @@ func (r *Resolver) Me(ctx context.Context) (*gql.User, error) {
 	if err := r.DB.First(&u, uid).Error; err != nil {
 		return nil, nil
 	}
-	return &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name}, nil
+	return &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name, Role: u.Role, Picture: u.Picture}, nil
 }

@@ -1,8 +1,8 @@
 import { useMutation } from "@apollo/client/react";
-import { CHECKOUT_MUTATION } from "../graphql/order";
+import { CHECKOUT_MUTATION } from "../../graphql/order";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Navbar from "../components/navbar";
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [checkout, { loading, error }] = useMutation(CHECKOUT_MUTATION);
@@ -24,7 +24,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10 text-center space-y-6">
-      <Navbar />
+      
       <h2 className="text-2xl font-bold">Ready to Place Order?</h2>
       <button
         onClick={handleCheckout}

@@ -1,23 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useMutation } from '@apollo/client/react'
 import { LOGIN_MUTATION } from '@/graphql/auth'
-import {
-  Utensils,
-  Mail,
-  Lock,
-  ArrowRight,
-  Loader as Loader2,
-} from 'lucide-react'
+import { Utensils, Mail, Lock, ArrowRight, Loader as Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export default function AdminLoginPage() {
+export default function LoginPage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdminLoginPage = pathname.startsWith('/admin')
+
   const [form, setForm] = useState({ email: '', password: '' })
   const [login, { loading, error }] = useMutation(LOGIN_MUTATION)
   const [localError, setLocalError] = useState('')
@@ -26,24 +23,31 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setLocalError('')
 
-    if (form.password.length < 6) {
-      setLocalError('Password must be at least 6 characters')
-      return
-    }
-
     try {
       const { data } = await login({ variables: form })
-        //@ts-ignore
+      //@ts-ignore
       if (data?.login?.token) {
         //@ts-ignore
+        const user = data.login.user
+
+        // If user is trying to log in from admin login page, check if role is admin
+        if (isAdminLoginPage && user.role !== 'admin') {
+          setLocalError('Access denied: not an admin')
+          return
+        }
+        //@ts-ignore
         localStorage.setItem('token', data.login.token)
-        router.push('/admin/page') // ✅ redirect to admin dashboard
-      } else {
-        setLocalError('Invalid credentials')
+        localStorage.setItem('role', user.role)
+        localStorage.setItem('name', user.name)
+        localStorage.setItem('email', user.email)
+        localStorage.setItem('picture', user.picture || '')
+        localStorage.setItem('user_id', user.id)
+
+        router.push(user.role === 'admin' ? '/admin/products' : '/user/products')
       }
     } catch (err) {
       console.error('Login error:', err)
-      setLocalError('Something went wrong. Please try again.')
+      setLocalError('Login failed. Please check credentials.')
     }
   }
 
@@ -56,18 +60,18 @@ export default function AdminLoginPage() {
               <Utensils className="h-8 w-8 text-orange-600" />
               <span className="text-2xl font-bold text-gray-900">FoodExpress</span>
             </Link>
-            <div className="flex items-center justify-between h-16">
-            <Link href="/login">
-              <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
-                User Login
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
-                User Signup
-              </Button>
-            </Link>
-            </div>
+            <div className="flex items-center space-x-4">
+              <Link href="/admin/login">
+                <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+                  Admin login
+                </Button>
+              </Link>
+              <Link href="/user/signup">
+                <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
+                 User SignUp
+                </Button>
+              </Link>
+          </div>
           </div>
         </div>
       </nav>
@@ -76,8 +80,14 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
             <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">Admin Login</h1>
-              <p className="text-gray-600 text-sm">Enter your admin credentials to continue</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {isAdminLoginPage ? 'Admin Login' : 'Welcome Back'}
+              </h1>
+              <p className="text-gray-600">
+                {isAdminLoginPage
+                  ? 'Only for authorized admins '
+                  : 'Sign in to continue ordering delicious food'}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -88,7 +98,7 @@ export default function AdminLoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@email.com"
+                    placeholder="your@email.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="pl-10 h-12"
@@ -104,7 +114,7 @@ export default function AdminLoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Minimum 6 characters"
+                    placeholder="Enter your password"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="pl-10 h-12"
@@ -113,9 +123,10 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
-              {(localError || error) && (
+              {(error || localError) && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {localError || error?.message}
+                  {/* @ts-ignore */}
+                  {localError || error.message}
                 </div>
               )}
 
@@ -127,20 +138,39 @@ export default function AdminLoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Logging in...
+                    Signing in...
                   </>
                 ) : (
                   <>
-                    Login as Admin
+                    Sign In
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
               </Button>
             </form>
+
+            {!isAdminLoginPage && (
+              <>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-gray-500">New to FoodExpress?</span>
+                  </div>
+                </div>
+
+                <Link href="/user/signup">
+                  <Button variant="outline" className="w-full h-12 text-lg border-2">
+                    Create an Account
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <p className="text-center text-sm text-gray-600 mt-6">
-            Admin access only. Unauthorized use prohibited.
+            By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>
       </div>
