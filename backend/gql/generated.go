@@ -66,13 +66,13 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddToCart      func(childComplexity int, productID string, quantity int) int
 		Checkout       func(childComplexity int, idempotencyKey *string) int
-		CreateProduct  func(childComplexity int, name string, price float64, stock int, image *string) int
+		CreateProduct  func(childComplexity int, name string, price float64, stock int, image *string, quantity *string) int
 		DeleteProduct  func(childComplexity int, id string) int
 		Login          func(childComplexity int, email string, password string) int
 		RemoveFromCart func(childComplexity int, productID string) int
 		Signup         func(childComplexity int, input SignupInput) int
 		UpdateCart     func(childComplexity int, productID string, quantity int) int
-		UpdateProduct  func(childComplexity int, id string, name *string, price *float64, stock *int, image *string) int
+		UpdateProduct  func(childComplexity int, id string, name *string, price *float64, stock *int, image *string, quantity *string) int
 	}
 
 	Order struct {
@@ -91,20 +91,23 @@ type ComplexityRoot struct {
 	}
 
 	Product struct {
+		AdminID   func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Image     func(childComplexity int) int
 		Name      func(childComplexity int) int
 		Price     func(childComplexity int) int
+		Quantity  func(childComplexity int) int
 		Stock     func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 
 	Query struct {
-		GetOrderHistory func(childComplexity int) int
-		GetProducts     func(childComplexity int, page *int, limit *int) int
-		Me              func(childComplexity int) int
-		MyCart          func(childComplexity int) int
+		GetOrderHistory  func(childComplexity int) int
+		GetProducts      func(childComplexity int, page int, limit int, search *string) int
+		GetProductsCount func(childComplexity int, search *string) int
+		Me               func(childComplexity int) int
+		MyCart           func(childComplexity int) int
 	}
 
 	User struct {
@@ -119,8 +122,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Signup(ctx context.Context, input SignupInput) (*AuthPayload, error)
 	Login(ctx context.Context, email string, password string) (*AuthPayload, error)
-	CreateProduct(ctx context.Context, name string, price float64, stock int, image *string) (*Product, error)
-	UpdateProduct(ctx context.Context, id string, name *string, price *float64, stock *int, image *string) (*Product, error)
+	CreateProduct(ctx context.Context, name string, price float64, stock int, image *string, quantity *string) (*Product, error)
+	UpdateProduct(ctx context.Context, id string, name *string, price *float64, stock *int, image *string, quantity *string) (*Product, error)
 	DeleteProduct(ctx context.Context, id string) (bool, error)
 	AddToCart(ctx context.Context, productID string, quantity int) (*Cart, error)
 	UpdateCart(ctx context.Context, productID string, quantity int) (*Cart, error)
@@ -129,7 +132,8 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*User, error)
-	GetProducts(ctx context.Context, page *int, limit *int) ([]*Product, error)
+	GetProducts(ctx context.Context, page int, limit int, search *string) ([]*Product, error)
+	GetProductsCount(ctx context.Context, search *string) (int, error)
 	MyCart(ctx context.Context) (*Cart, error)
 	GetOrderHistory(ctx context.Context) ([]*Order, error)
 }
@@ -230,7 +234,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProduct(childComplexity, args["name"].(string), args["price"].(float64), args["stock"].(int), args["image"].(*string)), true
+		return e.complexity.Mutation.CreateProduct(childComplexity, args["name"].(string), args["price"].(float64), args["stock"].(int), args["image"].(*string), args["quantity"].(*string)), true
 	case "Mutation.deleteProduct":
 		if e.complexity.Mutation.DeleteProduct == nil {
 			break
@@ -296,7 +300,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProduct(childComplexity, args["id"].(string), args["name"].(*string), args["price"].(*float64), args["stock"].(*int), args["image"].(*string)), true
+		return e.complexity.Mutation.UpdateProduct(childComplexity, args["id"].(string), args["name"].(*string), args["price"].(*float64), args["stock"].(*int), args["image"].(*string), args["quantity"].(*string)), true
 
 	case "Order.id":
 		if e.complexity.Order.ID == nil {
@@ -354,6 +358,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.OrderItem.Quantity(childComplexity), true
 
+	case "Product.adminId":
+		if e.complexity.Product.AdminID == nil {
+			break
+		}
+
+		return e.complexity.Product.AdminID(childComplexity), true
 	case "Product.createdAt":
 		if e.complexity.Product.CreatedAt == nil {
 			break
@@ -384,6 +394,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Product.Price(childComplexity), true
+	case "Product.quantity":
+		if e.complexity.Product.Quantity == nil {
+			break
+		}
+
+		return e.complexity.Product.Quantity(childComplexity), true
 	case "Product.stock":
 		if e.complexity.Product.Stock == nil {
 			break
@@ -413,7 +429,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetProducts(childComplexity, args["page"].(*int), args["limit"].(*int)), true
+		return e.complexity.Query.GetProducts(childComplexity, args["page"].(int), args["limit"].(int), args["search"].(*string)), true
+	case "Query.getProductsCount":
+		if e.complexity.Query.GetProductsCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getProductsCount_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetProductsCount(childComplexity, args["search"].(*string)), true
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -633,6 +660,11 @@ func (ec *executionContext) field_Mutation_createProduct_args(ctx context.Contex
 		return nil, err
 	}
 	args["image"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "quantity", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["quantity"] = arg4
 	return args, nil
 }
 
@@ -729,6 +761,11 @@ func (ec *executionContext) field_Mutation_updateProduct_args(ctx context.Contex
 		return nil, err
 	}
 	args["image"] = arg4
+	arg5, err := graphql.ProcessArgField(ctx, rawArgs, "quantity", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["quantity"] = arg5
 	return args, nil
 }
 
@@ -743,19 +780,35 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getProductsCount_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "search", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["search"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getProducts_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "page", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "page", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
 	args["page"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
 	args["limit"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "search", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["search"] = arg2
 	return args, nil
 }
 
@@ -1010,8 +1063,12 @@ func (ec *executionContext) fieldContext_CartItem_product(_ context.Context, fie
 				return ec.fieldContext_Product_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "adminId":
+				return ec.fieldContext_Product_adminId(ctx, field)
 			case "image":
 				return ec.fieldContext_Product_image(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Product_quantity(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -1154,7 +1211,7 @@ func (ec *executionContext) _Mutation_createProduct(ctx context.Context, field g
 		ec.fieldContext_Mutation_createProduct,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateProduct(ctx, fc.Args["name"].(string), fc.Args["price"].(float64), fc.Args["stock"].(int), fc.Args["image"].(*string))
+			return ec.resolvers.Mutation().CreateProduct(ctx, fc.Args["name"].(string), fc.Args["price"].(float64), fc.Args["stock"].(int), fc.Args["image"].(*string), fc.Args["quantity"].(*string))
 		},
 		nil,
 		ec.marshalNProduct2ᚖswiggyᚑcloneᚋbackendᚋgqlᚐProduct,
@@ -1183,8 +1240,12 @@ func (ec *executionContext) fieldContext_Mutation_createProduct(ctx context.Cont
 				return ec.fieldContext_Product_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "adminId":
+				return ec.fieldContext_Product_adminId(ctx, field)
 			case "image":
 				return ec.fieldContext_Product_image(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Product_quantity(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -1211,7 +1272,7 @@ func (ec *executionContext) _Mutation_updateProduct(ctx context.Context, field g
 		ec.fieldContext_Mutation_updateProduct,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateProduct(ctx, fc.Args["id"].(string), fc.Args["name"].(*string), fc.Args["price"].(*float64), fc.Args["stock"].(*int), fc.Args["image"].(*string))
+			return ec.resolvers.Mutation().UpdateProduct(ctx, fc.Args["id"].(string), fc.Args["name"].(*string), fc.Args["price"].(*float64), fc.Args["stock"].(*int), fc.Args["image"].(*string), fc.Args["quantity"].(*string))
 		},
 		nil,
 		ec.marshalNProduct2ᚖswiggyᚑcloneᚋbackendᚋgqlᚐProduct,
@@ -1240,8 +1301,12 @@ func (ec *executionContext) fieldContext_Mutation_updateProduct(ctx context.Cont
 				return ec.fieldContext_Product_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "adminId":
+				return ec.fieldContext_Product_adminId(ctx, field)
 			case "image":
 				return ec.fieldContext_Product_image(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Product_quantity(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -1940,6 +2005,35 @@ func (ec *executionContext) fieldContext_Product_updatedAt(_ context.Context, fi
 	return fc, nil
 }
 
+func (ec *executionContext) _Product_adminId(ctx context.Context, field graphql.CollectedField, obj *Product) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Product_adminId,
+		func(ctx context.Context) (any, error) {
+			return obj.AdminID, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Product_adminId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Product_image(ctx context.Context, field graphql.CollectedField, obj *Product) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1957,6 +2051,35 @@ func (ec *executionContext) _Product_image(ctx context.Context, field graphql.Co
 }
 
 func (ec *executionContext) fieldContext_Product_image(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_quantity(ctx context.Context, field graphql.CollectedField, obj *Product) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Product_quantity,
+		func(ctx context.Context) (any, error) {
+			return obj.Quantity, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Product_quantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Product",
 		Field:      field,
@@ -2018,7 +2141,7 @@ func (ec *executionContext) _Query_getProducts(ctx context.Context, field graphq
 		ec.fieldContext_Query_getProducts,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetProducts(ctx, fc.Args["page"].(*int), fc.Args["limit"].(*int))
+			return ec.resolvers.Query().GetProducts(ctx, fc.Args["page"].(int), fc.Args["limit"].(int), fc.Args["search"].(*string))
 		},
 		nil,
 		ec.marshalNProduct2ᚕᚖswiggyᚑcloneᚋbackendᚋgqlᚐProductᚄ,
@@ -2047,8 +2170,12 @@ func (ec *executionContext) fieldContext_Query_getProducts(ctx context.Context, 
 				return ec.fieldContext_Product_createdAt(ctx, field)
 			case "updatedAt":
 				return ec.fieldContext_Product_updatedAt(ctx, field)
+			case "adminId":
+				return ec.fieldContext_Product_adminId(ctx, field)
 			case "image":
 				return ec.fieldContext_Product_image(ctx, field)
+			case "quantity":
+				return ec.fieldContext_Product_quantity(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Product", field.Name)
 		},
@@ -2061,6 +2188,47 @@ func (ec *executionContext) fieldContext_Query_getProducts(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getProducts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getProductsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_getProductsCount,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().GetProductsCount(ctx, fc.Args["search"].(*string))
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_getProductsCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getProductsCount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4300,8 +4468,15 @@ func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "adminId":
+			out.Values[i] = ec._Product_adminId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "image":
 			out.Values[i] = ec._Product_image(ctx, field, obj)
+		case "quantity":
+			out.Values[i] = ec._Product_quantity(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4373,6 +4548,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getProducts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getProductsCount":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getProductsCount(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

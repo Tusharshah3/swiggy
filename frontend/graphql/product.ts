@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-
+// ✅ Add to Cart
 export const ADD_TO_CART = gql`
   mutation AddToCart($productId: ID!, $quantity: Int!) {
     addToCart(productId: $productId, quantity: $quantity) {
@@ -18,46 +18,78 @@ export const ADD_TO_CART = gql`
   }
 `;
 
-
-
 // ✅ Get paginated list of products
 export const GET_PRODUCTS = gql`
-  query GetProducts($page: Int, $limit: Int) {
-    getProducts(page: $page, limit: $limit) {
+  query GetProducts($page: Int!, $limit: Int!, $search: String) {
+    getProducts(page: $page, limit: $limit, search: $search) {
       id
       name
       price
       stock
+      quantity
       image
+      adminId
     }
   }
 `;
 
-// ✅ Add new product
+// ✅ Count of filtered products
+export const GET_PRODUCTS_COUNT = gql`
+  query GetProductsCount($search: String) {
+    getProductsCount(search: $search)
+  }
+`;
+
+// ✅ Add new product (correct order + quantity)
 export const CREATE_PRODUCT = gql`
-  mutation CreateProduct($name: String!, $price: Float!, $stock: Int!, $image: String) {
-    createProduct(name: $name, price: $price, stock: $stock, image: $image) {
+  mutation CreateProduct(
+    $name: String!
+    $price: Float!
+    $stock: Int!
+    $quantity: String
+    $image: String
+  ) {
+    createProduct(
+      name: $name
+      price: $price
+      stock: $stock
+      quantity: $quantity
+      image: $image
+    ) {
       id
       name
+      price
+      stock
+      quantity
       image
+      adminId
     }
   }
 `;
 
-// ✅ Update existing product
+// ✅ Update existing product (with optional quantity)
 export const UPDATE_PRODUCT = gql`
   mutation UpdateProduct(
     $id: ID!
     $name: String
     $price: Float
     $stock: Int
+    $quantity: String
     $image: String
   ) {
-    updateProduct(id: $id, name: $name, price: $price, stock: $stock, image: $image) {
+    updateProduct(
+      id: $id
+      name: $name
+      price: $price
+      stock: $stock
+      quantity: $quantity
+      image: $image
+    ) {
       id
       name
       price
       stock
+      quantity
       image
     }
   }

@@ -51,7 +51,9 @@ type Product struct {
 	Stock     int       `json:"stock"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	AdminID   int       `json:"adminId"`
 	Image     *string   `json:"image,omitempty"`
+	Quantity  *string   `json:"quantity,omitempty"`
 }
 
 type Query struct {

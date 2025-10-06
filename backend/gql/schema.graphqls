@@ -36,11 +36,14 @@ type Product {
   stock: Int!
   createdAt: Time!
   updatedAt: Time!
+  adminId: Int!
   image: String 
+  quantity: String
 }
 
 extend type Query {
-  getProducts(page: Int, limit: Int): [Product!]!
+  getProducts(page: Int!, limit: Int! ,search: String): [Product!]!
+  getProductsCount(search: String): Int!
 }
 
 extend type Mutation {
@@ -48,8 +51,9 @@ extend type Mutation {
     name: String!, 
     price: Float!, 
     stock: Int!, 
-    image: String): Product!
-  updateProduct(id: ID!, name: String, price: Float, stock: Int ,image: String): Product!
+    image: String,
+    quantity: String): Product!
+  updateProduct(id: ID!, name: String, price: Float, stock: Int ,image: String, quantity: String): Product!
   deleteProduct(id: ID!): Boolean!
 }
 

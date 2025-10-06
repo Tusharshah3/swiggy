@@ -58,7 +58,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!token) {
-      router.push('/login')
+      router.push('/admin/login')
     }
   }, [token])
 
@@ -116,11 +116,11 @@ export default function ProfilePage() {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/user/products" className="flex items-center space-x-2">
+            <Link href="/admin/products" className="flex items-center space-x-2">
               <Utensils className="h-8 w-8 text-orange-600" />
               <span className="text-2xl font-bold text-gray-900">FoodExpress</span>
             </Link>
-            <Link href="/user/products">
+            <Link href="/admin/products">
               <Button variant="ghost" className="text-gray-700 hover:text-orange-600">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back to Products

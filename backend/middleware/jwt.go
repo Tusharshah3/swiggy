@@ -109,3 +109,7 @@ func UserIDFromCtx(ctx context.Context) (uint, bool) {
 	fmt.Println("[UserIDFromCtx] extracted user ID =", uid)
 	return uid, true
 }
+func RoleFromCtx(ctx context.Context) (string, bool) {
+	role, ok := ctx.Value("role").(string)
+	return role, ok
+}
