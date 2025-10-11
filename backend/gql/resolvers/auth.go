@@ -42,9 +42,18 @@ func (r *Resolver) Me(ctx context.Context) (*gql.User, error) {
 	if !ok {
 		return nil, nil
 	}
+
 	var u models.User
 	if err := r.DB.First(&u, uid).Error; err != nil {
 		return nil, nil
 	}
-	return &gql.User{ID: fmt.Sprint(u.ID), Email: u.Email, Name: u.Name, Role: u.Role, Picture: u.Picture}, nil
+
+	return &gql.User{
+		ID:        fmt.Sprint(u.ID),
+		Email:     u.Email,
+		Name:      u.Name,
+		Role:      u.Role,
+		Picture:   u.Picture,
+		CreatedAt: u.CreatedAt, // ✅ now this will work
+	}, nil
 }

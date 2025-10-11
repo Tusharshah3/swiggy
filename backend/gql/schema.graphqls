@@ -6,6 +6,7 @@ type User {
   name: String!
   role: String!
   picture: String
+  createdAt: Time!
 }
 input SignupInput {
   email: String!
@@ -81,6 +82,7 @@ type OrderItem {
   productId: ID!
   quantity: Int!
   priceAtPurchase: Float!
+  product: Product
 }
 
 enum OrderStatus {
@@ -89,10 +91,19 @@ enum OrderStatus {
   SUCCESS
   FAILED
 }
+type ProductItem {
+  productId: ID!
+  quantity: Int!
+  priceAtPurchase: Float!
+  product: Product
+}
 
 type Order {
   id: ID!
-  total: Float!
+  user_id: ID!
+  products: [ProductItem!]!  
+  product_admins: [ID!]! 
+  total_price: Float!
   status: OrderStatus!
   placedAt: Time!
   items: [OrderItem!]!
@@ -105,4 +116,27 @@ extend type Mutation {
 
 extend type Query {
   getOrderHistory: [Order!]!
+}
+type Payment {
+  id: ID!
+  userId: ID!
+  adminId: ID!
+  orderID: ID!
+  amount: Float!
+  status: String!
+  method: String!
+  createdAt: Time!
+}
+
+extend type Mutation {
+  createPaymentsFromOrder(orderId: ID!, method: String!): [Payment!]!
+}
+extend type Query {
+  payments: [Payment!]!
+  payment(id: ID!): Payment
+  myOrders: [Order!]!
+}
+
+extend type Query {
+  getAdminOrders: [Order!]!   # ✅ returns orders that include current admin
 }

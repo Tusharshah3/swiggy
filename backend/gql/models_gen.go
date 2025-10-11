@@ -30,18 +30,33 @@ type Mutation struct {
 }
 
 type Order struct {
-	ID             string       `json:"id"`
-	Total          float64      `json:"total"`
-	Status         OrderStatus  `json:"status"`
-	PlacedAt       time.Time    `json:"placedAt"`
-	Items          []*OrderItem `json:"items"`
-	IdempotencyKey *string      `json:"idempotencyKey,omitempty"`
+	ID             string         `json:"id"`
+	UserID         string         `json:"user_id"`
+	Products       []*ProductItem `json:"products"`
+	ProductAdmins  []string       `json:"product_admins"`
+	TotalPrice     float64        `json:"total_price"`
+	Status         OrderStatus    `json:"status"`
+	PlacedAt       time.Time      `json:"placedAt"`
+	Items          []*OrderItem   `json:"items"`
+	IdempotencyKey *string        `json:"idempotencyKey,omitempty"`
 }
 
 type OrderItem struct {
-	ProductID       string  `json:"productId"`
-	Quantity        int     `json:"quantity"`
-	PriceAtPurchase float64 `json:"priceAtPurchase"`
+	ProductID       string   `json:"productId"`
+	Quantity        int      `json:"quantity"`
+	PriceAtPurchase float64  `json:"priceAtPurchase"`
+	Product         *Product `json:"product,omitempty"`
+}
+
+type Payment struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"userId"`
+	AdminID   string    `json:"adminId"`
+	OrderID   string    `json:"orderID"`
+	Amount    float64   `json:"amount"`
+	Status    string    `json:"status"`
+	Method    string    `json:"method"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Product struct {
@@ -56,6 +71,13 @@ type Product struct {
 	Quantity  *string   `json:"quantity,omitempty"`
 }
 
+type ProductItem struct {
+	ProductID       string   `json:"productId"`
+	Quantity        int      `json:"quantity"`
+	PriceAtPurchase float64  `json:"priceAtPurchase"`
+	Product         *Product `json:"product,omitempty"`
+}
+
 type Query struct {
 }
 
@@ -68,11 +90,12 @@ type SignupInput struct {
 }
 
 type User struct {
-	ID      string  `json:"id"`
-	Email   string  `json:"email"`
-	Name    string  `json:"name"`
-	Role    string  `json:"role"`
-	Picture *string `json:"picture,omitempty"`
+	ID        string    `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	Role      string    `json:"role"`
+	Picture   *string   `json:"picture,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type OrderStatus string

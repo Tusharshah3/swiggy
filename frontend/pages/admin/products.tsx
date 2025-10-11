@@ -4,8 +4,7 @@ import {
   Package,
   ShoppingCart,
   TrendingUp,
-  DollarSign,
-  AlertTriangle,
+  IndianRupee as DollarSign,
   Plus,
   Edit2,
   Trash2,
@@ -25,7 +24,7 @@ import {
   DELETE_PRODUCT,
   GET_PRODUCTS_COUNT,
 } from '@/graphql/product'
-import { GET_ALL_ORDERS } from '@/graphql/order'
+import { GET_ADMIN_ORDERS } from '@/graphql/adminOrder'
 import {
   Card,
   CardContent,
@@ -37,6 +36,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -56,7 +56,7 @@ export default function AdminPage() {
     const token = localStorage.getItem('token')
     const role = localStorage.getItem('role')
     if (!token || role !== 'admin') {
-      router.push('/login')
+      router.push('/user/login')
     } else {
       setAuthorized(true)
     }
@@ -90,7 +90,7 @@ export default function AdminPage() {
     }
   }, [countData])
 
-  const { data: orderData } = useQuery(GET_ALL_ORDERS, { skip: !authorized })
+  const { data: orderData } = useQuery(GET_ADMIN_ORDERS, { skip: !authorized })
 
   const [createProduct] = useMutation(CREATE_PRODUCT)
   const [updateProduct] = useMutation(UPDATE_PRODUCT)
@@ -99,7 +99,7 @@ export default function AdminPage() {
   // @ts-ignore
   const products = productData?.getProducts || []
   // @ts-ignore
-  const orders = orderData?.getOrderHistory || []
+  const orders = orderData?.getAdminOrders  || []
 
 const handleCreateOrUpdate = async () => {
   try {
@@ -222,7 +222,7 @@ const handleCreateOrUpdate = async () => {
   const topSelling = getTopSelling()
 
   if (!authorized) return <p className="text-center mt-10">Checking admin access...</p>
-  if (productLoading) return <p className="text-center mt-10">Loading...</p>
+  // if (productLoading) return <p className="text-center mt-10">Loading...</p>
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
@@ -262,7 +262,18 @@ const handleCreateOrUpdate = async () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="bg-white shadow hover:shadow-md"><CardContent className="pt-6"><div className="flex justify-between"><div><p className="text-sm text-gray-500">Products</p><p className="text-2xl font-bold text-orange-600">{products.length}</p></div><Package className="text-orange-600" /></div></CardContent></Card>
           <Card className="bg-white shadow hover:shadow-md"><CardContent className="pt-6"><div className="flex justify-between"><div><p className="text-sm text-gray-500">Orders</p><p className="text-2xl font-bold text-green-600">{totalOrders}</p></div><ShoppingCart className="text-green-600" /></div></CardContent></Card>
-          <Card className="bg-white shadow hover:shadow-md"><CardContent className="pt-6"><div className="flex justify-between"><div><p className="text-sm text-gray-500">Revenue</p><p className="text-2xl font-bold text-blue-600">₹{totalSales.toFixed(0)}</p></div><DollarSign className="text-blue-600" /></div></CardContent></Card>
+          <Card className="bg-white shadow hover:shadow-md">
+            <CardContent className="pt-6">
+              <div className="flex justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Revenue</p>
+                  <p className="text-2xl font-bold text-blue-600">₹{totalSales.toFixed(0)}</p>
+                </div>
+                <span className="text-blue-600 text-xl font-bold">₹</span>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white shadow hover:shadow-md"><CardContent className="pt-6"><div className="flex justify-between"><div><p className="text-sm text-gray-500">Items Sold</p><p className="text-2xl font-bold text-red-600">{totalItems}</p></div><TrendingUp className="text-red-600" /></div></CardContent></Card>
         </div>
 
@@ -277,7 +288,7 @@ const handleCreateOrUpdate = async () => {
 
           {/* Product Tab */}
           <TabsContent value="products" className="space-y-6">
-            <Card className="shadow">
+           <Card className="shadow">
               <CardHeader>
                 <div className="flex justify-between">
                   <div>
@@ -286,68 +297,160 @@ const handleCreateOrUpdate = async () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name" />
-                  <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="Price" />
-                  <Input value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Quantity (e.g. 200g / 1L / 1 unit)" />
-                  <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="Stock" />
-                  <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="Image URL" />
+
+              <CardContent className="space-y-6">
+                {/* Responsive grid with labels */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="name" className="text-sm font-medium text-gray-700">Name</Label>
+                    <Input
+                      id="name"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Product name"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="price" className="text-sm font-medium text-gray-700">Price (₹)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      placeholder="Enter price"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">Quantity</Label>
+                    <Input
+                      id="quantity"
+                      value={form.quantity}
+                      onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                      placeholder="e.g. 200g / 1L / 1 unit"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="stock" className="text-sm font-medium text-gray-700">Stock</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      value={form.stock}
+                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                      placeholder="Current stock"
+                    />
+                  </div>
+
+                  <div className="space-y-1 sm:col-span-2 lg:col-span-3">
+                    <Label htmlFor="image" className="text-sm font-medium text-gray-700">Image URL</Label>
+                    <Input
+                      id="image"
+                      value={form.image}
+                      onChange={(e) => setForm({ ...form, image: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button onClick={handleCreateOrUpdate} className="bg-green-600 hover:bg-green-700 text-white">{editingId ? 'Update' : 'Create'}</Button>
-                  {editingId && <Button variant="outline" onClick={resetForm}>Cancel</Button>}
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={handleCreateOrUpdate}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {editingId ? 'Update' : 'Create'}
+                  </Button>
+                  {editingId && (
+                    <Button variant="outline" onClick={resetForm}>
+                      Cancel
+                    </Button>
+                  )}
                 </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
-                </div>
-                <div className="space-y-4 ">
-                    {filteredProducts.map((product: any) => {
-                      let stockColor = 'text-gray-700'
-                      if (product.stock === 0) stockColor = 'text-red-600'
-                      else if (product.stock > 0 && product.stock < 10) stockColor = 'text-orange-600'
+              </CardContent>
+            </Card>
 
-                      return (
-                        <div
-                          key={product.id}
-                          className="border p-4 rounded-lg bg-orange-50 hover:shadow-md transition"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-4">
-                              <img
-                                src={product.image || 'https://via.placeholder.com/100'}
-                                className="w-14 h-14 rounded object-cover"
-                              />
-                              <div>
-                                <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                <p className="text-gray-600">
-                                  ₹ {product.price} |{' '}
-                                  <span className={stockColor}>Stock: {product.stock}</span>{' '}
-                                  | <span className="text-gray-500">Quantity: {product.quantity}</span>
-                                </p>
+
+            <Card className="shadow">
+                
+                <div className="relative flex items-center">
+                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      {productLoading && (
+                        <div className="absolute right-3 top-2.5">
+                          <div className="h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      )}
+                    </div>
+
+              </Card>
+
+            <Card className="shadow">
+                <CardContent className="space-y-6">
+                <div className="space-y-4 mt-6 ">
+                    {productLoading ? (
+                        <div className="flex justify-center items-center py-10">
+                          <div className="h-5 w-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                          <p className="ml-3 text-sm text-gray-600">Searching...</p>
+                        </div>
+                      ) :filteredProducts.length === 0 ? (
+                        <div className="text-center text-gray-500 py-10">
+                          <p>No products found for "<span className="font-medium text-orange-600">{search}</span>"</p>
+                          <p className="text-sm mt-1">Try adjusting your search or clearing the filter.</p>
+                        </div>
+                      ) : (
+                        filteredProducts.map((product: any) => {
+                          let stockColor = 'text-gray-700'
+                          if (product.stock === 0) stockColor = 'text-red-600'
+                          else if (product.stock > 0 && product.stock < 10) stockColor = 'text-orange-600'
+
+                          return (
+                            <div
+                              key={product.id}
+                              className="border p-4 rounded-lg bg-orange-50 hover:shadow-md transition"
+                            >
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-4">
+                                  <img
+                                    src={product.image || 'https://via.placeholder.com/100'}
+                                    className="w-14 h-14 rounded object-cover"
+                                    alt={product.name}
+                                  />
+                                  <div>
+                                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                                    <p className="text-gray-600">
+                                      ₹ {product.price} | <span className={stockColor}>Stock: {product.stock}</span>{' '}
+                                      | <span className="text-gray-500">Quantity: {product.quantity}</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="space-x-2">
+                                  <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
+                                    <Edit2 className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setDeleteId(product.id)
+                                      setShowConfirm(true)
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                            <div className="space-x-2">
-                              <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setDeleteId(product.id)
-                                  setShowConfirm(true)
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4 text-red-600" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
+                          )
+                        })
+                      )}
+
                   </div>
 
                 {/* Pagination Controls */}

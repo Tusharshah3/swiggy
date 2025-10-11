@@ -8,7 +8,12 @@ export const MY_CART = gql`
           id
           name
           price
+          stock
           image
+          adminId
+          quantity
+          createdAt
+          updatedAt
         }
         quantity
       }
@@ -16,6 +21,7 @@ export const MY_CART = gql`
     }
   }
 `;
+
 
 export const UPDATE_CART = gql`
   mutation UpdateCart($productId: ID!, $quantity: Int!) {

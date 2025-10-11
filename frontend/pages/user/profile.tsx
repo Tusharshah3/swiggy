@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useQuery } from '@apollo/client/react'
@@ -33,12 +33,20 @@ import {
   ArrowLeft
 } from 'lucide-react'
 
-export default function ProfilePage() {
+export default function UserProfilePage() {
   const router = useRouter()
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-
+  const [token, setToken] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const t = localStorage.getItem('token')
+    if (!t) {
+      router.push('/user/login')
+    } else {
+      setToken(t)
+    }
+  }, [router])
 
   const { data, loading, error } = useQuery(GET_ME, {
     context: {
@@ -48,6 +56,7 @@ export default function ProfilePage() {
     },
     skip: !token,
   })
+
   //@ts-ignore
   const user = data?.me
 
@@ -57,16 +66,10 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
-    if (!token) {
-      router.push('/login')
-    }
-  }, [token])
-
-  useEffect(() => {
     if (user) {
       setForm({
         name: user.name || '',
-        picture: user.picture || "https://i.pravatar.cc/150?img=1.png",
+        picture: user.picture || 'https://i.pravatar.cc/150?img=1.png',
       })
     }
   }, [user])
@@ -92,7 +95,16 @@ export default function ProfilePage() {
     .toUpperCase()
     .slice(0, 2)
 
-  if (loading) {
+  const formattedDate = useMemo(() => {
+    if (!user?.createdAt) return 'N/A'
+    return new Date(user.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  }, [user?.createdAt])
+
+  if (!token || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -113,6 +125,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
+      {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -137,6 +150,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid gap-6">
+          {/* Profile Info */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -233,6 +247,37 @@ export default function ProfilePage() {
                   <Label htmlFor="role" className="text-gray-700">Role</Label>
                   <div className="px-4 py-3 bg-gray-100 rounded-lg text-gray-700 capitalize">
                     {user?.role}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Account Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Your account details and statistics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Account ID</p>
+                  <p className="font-mono text-sm bg-gray-50 p-3 rounded-lg break-all">
+                    {user?.id || 'N/A'}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Member Since</p>
+                  <p className="font-medium text-gray-900 bg-gray-50 p-3 rounded-lg">
+                    {formattedDate}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Account Status</p>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                    <span className="font-medium text-green-600">Active</span>
                   </div>
                 </div>
               </div>

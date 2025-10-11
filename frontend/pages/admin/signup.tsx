@@ -70,7 +70,7 @@ export default function SignupPage() {
         localStorage.setItem('user_id', data.signup.user.id)
         //@ts-ignore
         const userRole = data.signup.user.role
-        router.push(userRole === 'admin' ? '/admin/page' : '/products')
+        router.push(userRole === 'admin' ? '/admin/product' : '/user/products')
       }
     } catch (err) {
       console.error('Signup failed:', err)

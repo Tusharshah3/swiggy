@@ -13,7 +13,9 @@ func AutoMigrate(gdb *gorm.DB) {
 		&models.User{},
 		&models.Product{},
 		&models.Order{},
-		&models.OrderItem{}, // <-- add this line
+		&models.OrderItem{},
+		&models.CartItem{},
+		&models.Payment{}, // ✅ add this line
 	)
 	if err != nil {
 		log.Fatalf("migration failed: %v", err)

@@ -2,7 +2,8 @@
 
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_PRODUCTS, ADD_TO_CART } from '@/graphql/product'
-import { useEffect, useState } from 'react'
+import { MY_CART } from '@/graphql/cart'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -27,10 +28,10 @@ export default function ProductsPage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-
+  
   useEffect(() => {
     if (!token) {
-      router.push('/login')
+      router.push('/user/login')
     }
   }, [token])
 
@@ -51,6 +52,29 @@ export default function ProductsPage() {
       },
     },
   })
+    const { data: cartData } = useQuery(MY_CART, {
+      
+    context: {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    },
+    skip: !token,
+    fetchPolicy: 'cache-and-network',
+    
+  })
+  console.log("🔍 Cart Data:", cartData)
+
+// 1. Extract cart items safely
+//@ts-ignore
+  const cartItems = cartData?.getMyCart?.items || []
+
+  // 2. Use cartItems.length to control the button visibility
+  useEffect(() => {
+    console.log("🛒 Cart Items:", cartItems.length)
+    setShowCartButton(cartItems.length > 0)
+  }, [cartItems.length])
+
 
   const handleAdd = async (id: string) => {
     try {
@@ -58,7 +82,7 @@ export default function ProductsPage() {
       await addToCart({ variables: { productId: id, quantity: 1 } })
       setShowCartButton(true)
     } catch (err) {
-      alert('Failed to add to cart ❌')
+      alert('Failed to add to cart ')
     } finally {
       setAdding(null)
     }
@@ -97,7 +121,7 @@ export default function ProductsPage() {
             </Link>
 
             <div className="flex items-center space-x-4">
-              <Link href="/cart">
+              <Link href="/user/cart">
                 <Button variant="ghost" className="relative hover:text-orange-600">
                   <ShoppingCart className="h-5 w-5" />
                 </Button>

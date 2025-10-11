@@ -9,7 +9,7 @@ import (
 	"swiggy-clone/backend/models"
 )
 
-const cartTTL = 50 * time.Minute
+const cartTTL = 1000 * time.Minute
 
 func cartKey(userID uint) string {
 	return fmt.Sprintf("user:%d:cart", userID)

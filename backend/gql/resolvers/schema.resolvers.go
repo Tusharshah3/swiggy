@@ -65,10 +65,12 @@ func (r *mutationResolver) Signup(ctx context.Context, input gql.SignupInput) (*
 	return &gql.AuthPayload{
 		Token: signedToken,
 		User: &gql.User{
-			ID:    fmt.Sprint(user.ID),
-			Email: user.Email,
-			Name:  user.Name,
-			Role:  user.Role,
+			ID:        fmt.Sprint(user.ID),
+			Email:     user.Email,
+			Name:      user.Name,
+			Role:      user.Role,
+			Picture:   user.Picture,
+			CreatedAt: user.CreatedAt,
 		},
 	}, nil
 }
@@ -101,10 +103,11 @@ func (r *mutationResolver) Login(ctx context.Context, email string, password str
 	return &gql.AuthPayload{
 		Token: signedToken,
 		User: &gql.User{
-			ID:    fmt.Sprint(user.ID),
-			Email: user.Email,
-			Name:  user.Name,
-			Role:  user.Role,
+			ID:        fmt.Sprint(user.ID),
+			Email:     user.Email,
+			Name:      user.Name,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt,
 		},
 	}, nil
 }

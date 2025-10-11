@@ -40,24 +40,24 @@ func JWT(next http.Handler) http.Handler {
 
 		// JWT processing
 		authHeader := r.Header.Get("Authorization")
-		fmt.Println("[JWT MIDDLEWARE] Authorization header =", authHeader)
+		// fmt.Println("[JWT MIDDLEWARE] Authorization header =", authHeader)
 
 		if authHeader == "" {
-			fmt.Println("[JWT MIDDLEWARE ❌] Missing Authorization header")
+			// fmt.Println("[JWT MIDDLEWARE ] Missing Authorization header")
 			http.Error(w, "missing auth header", http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			fmt.Println("[JWT MIDDLEWARE ❌] Invalid Authorization header format")
+			// fmt.Println("[JWT MIDDLEWARE ] Invalid Authorization header format")
 			http.Error(w, "invalid token format", http.StatusUnauthorized)
 			return
 		}
 
 		tokenStr := parts[1]
-		fmt.Println("[JWT MIDDLEWARE] Token string =", tokenStr)
-		fmt.Println("[JWT MIDDLEWARE] JWT_SECRET =", os.Getenv("JWT_SECRET"))
+		// fmt.Println("[JWT MIDDLEWARE] Token string =", tokenStr)
+		// fmt.Println("[JWT MIDDLEWARE] JWT_SECRET =", os.Getenv("JWT_SECRET"))
 
 		claims := jwt.RegisteredClaims{}
 		token, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error) {
@@ -65,24 +65,24 @@ func JWT(next http.Handler) http.Handler {
 		})
 
 		if err != nil {
-			fmt.Println("[JWT MIDDLEWARE ❌] Token parsing error:", err)
+			// fmt.Println("[JWT MIDDLEWARE ] Token parsing error:", err)
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 		if !token.Valid {
-			fmt.Println("[JWT MIDDLEWARE ❌] Token is NOT valid")
+			// fmt.Println("[JWT MIDDLEWARE ] Token is NOT valid")
 			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 
 		if claims.Subject == "" {
-			fmt.Println("[JWT MIDDLEWARE ❌] Token subject is missing")
+			// fmt.Println("[JWT MIDDLEWARE ] Token subject is missing")
 			http.Error(w, "no subject in token", http.StatusUnauthorized)
 			return
 		}
 
-		// ✅ Token is valid
-		fmt.Println("[JWT MIDDLEWARE ✅] Token is valid. Subject:", claims.Subject)
+		//  Token is valid
+		// fmt.Println("[JWT MIDDLEWARE ] Token is valid. Subject:", claims.Subject)
 
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.Subject)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -91,7 +91,7 @@ func JWT(next http.Handler) http.Handler {
 
 func UserIDFromCtx(ctx context.Context) (uint, bool) {
 	v := ctx.Value(UserIDKey)
-	fmt.Println(" [UserIDFromCtx] context value =", v)
+	// fmt.Println(" [UserIDFromCtx] context value =", v)
 
 	strID, ok := v.(string)
 	if !ok {
