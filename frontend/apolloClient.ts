@@ -2,7 +2,7 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from "@apollo/client";
 
 const httpLink = new HttpLink({
-  uri: "http://localhost:8080/query", // ⛳ change later to Railway backend
+  uri: "process.env.NEXT_PUBLIC_API_URL + '/query'," // ⛳ change later to Railway backend
 });
 
 const authLink = new ApolloLink((operation, forward) => {

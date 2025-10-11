@@ -43,11 +43,11 @@ func main() {
 		if err := gdb.Model(&models.Order{}).
 			Where("id = ?", orderID).
 			Update("status", models.OrderSuccess).Error; err != nil {
-			log.Printf("❌ Failed to update order %d: %v", orderID, err)
+			log.Printf(" Failed to update order %d: %v", orderID, err)
 			return
 		}
 
-		log.Printf("✅ Order %d marked as SUCCESS", orderID)
+		log.Printf(" Order %d marked as SUCCESS", orderID)
 	})
 
 	// ✅ Step 3: Inject everything into resolver
@@ -69,7 +69,7 @@ func main() {
 
 	// ✅ Step 4: ADD CORS middleware BEFORE JWT
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // frontend dev URL
+		AllowedOrigins:   []string{"http://localhost:3000", "https://swiggy-frontend1.vercel.app"}, // frontend dev URL
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -86,6 +86,6 @@ func main() {
 		playground.Handler("GraphQL playground", "/query").ServeHTTP(w, r)
 	})
 
-	log.Println("🚀 Listening on :" + cfg.Port)
+	log.Println(" Listening on :" + cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
 }
